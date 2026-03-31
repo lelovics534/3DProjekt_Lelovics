@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ImageViewerClass</class>
+ <widget class="QMainWindow" name="ImageViewerClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>825</width>
+    <height>646</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>ImageViewer</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QScrollArea" name="scrollArea">
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scrollAreaWidgetContents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>545</width>
+         <height>566</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>825</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen"/>
+    <addaction name="actionSave_as"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuImage">
+    <property name="title">
+     <string>Image</string>
+    </property>
+    <addaction name="actionClear"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuImage"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="windowTitle">
+    <string>Tools</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Color</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QPushButton" name="pushButtonSetColor">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="title">
+        <string>Draw</string>
+       </property>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="8" column="1">
+         <widget class="QSpinBox" name="spinScaleX"/>
+        </item>
+        <item row="9" column="1">
+         <widget class="QSpinBox" name="spinEdgeIndex"/>
+        </item>
+        <item row="4" column="1">
+         <widget class="QToolButton" name="toolButtonDrawTriangle">
+          <property name="text">
+           <string>Triangle</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="0">
+         <widget class="QRadioButton" name="radioPolygon">
+          <property name="text">
+           <string>Polygon</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="2">
+         <widget class="QSpinBox" name="spinScaleY"/>
+        </item>
+        <item row="7" column="0">
+         <widget class="QPushButton" name="btnRotate">
+          <property name="text">
+           <string>Rotate</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QToolButton" name="toolButtonDrawCurves">
+          <property name="text">
+           <string>Curves</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="0">
+         <widget class="QPushButton" name="btnFillPolygon">
+          <property name="text">
+           <string>Fill polygon</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="0">
+         <widget class="QPushButton" name="btnReflectPolygon">
+          <property name="text">
+           <string>Reflect</string>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QRadioButton" name="radioLine">
+          <property name="text">
+           <string>Line</string>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="0" colspan="2">
+         <widget class="QComboBox" name="comboBoxInterpolation">
+          <item>
+           <property name="text">
+            <string>Nearest Neighbor</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Baricentric interpolation</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="10" column="1">
+         <widget class="QPushButton" name="btnVertical">
+          <property name="text">
+           <string>Vertical</string>
+          </property>
+         </widget>
+        </item>
+        <item row="7" column="1">
+         <widget class="QSpinBox" name="spinAngle">
+          <property name="mouseTracking">
+           <bool>true</bool>
+          </property>
+          <property name="minimum">
+           <number>-360</number>
+          </property>
+          <property name="maximum">
+           <number>360</number>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QToolButton" name="toolButtonDrawCircle">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="text">
+           <string>Circle</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="0" colspan="2">
+         <widget class="QComboBox" name="comboBoxCurves">
+          <item>
+           <property name="text">
+            <string>Hermitovská kubika</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Bézierova krivka</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Coonsov kubický B-spline</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="12" column="1">
+         <widget class="QSpinBox" name="spinLineIndex">
+          <property name="wrapping">
+           <bool>false</bool>
+          </property>
+          <property name="suffix">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="0">
+         <widget class="QPushButton" name="btnScale">
+          <property name="text">
+           <string>Scale</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="0">
+         <widget class="QToolButton" name="toolButtonDrawPolygon">
+          <property name="text">
+           <string>Polygon</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="0" colspan="2">
+         <widget class="QComboBox" name="comboBoxLineAlg">
+          <item>
+           <property name="text">
+            <string>DDA</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Bresenham</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="10" column="0">
+         <widget class="QPushButton" name="btnHorizontal">
+          <property name="text">
+           <string>Horizontal</string>
+          </property>
+         </widget>
+        </item>
+        <item row="12" column="0">
+         <widget class="QToolButton" name="toolButtonLineMove">
+          <property name="text">
+           <string>Move Line</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QToolButton" name="toolButtonDrawLine">
+          <property name="text">
+           <string>Line</string>
+          </property>
+          <property name="checkable">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="0">
+         <widget class="QPushButton" name="btnCreateCube">
+          <property name="text">
+           <string>Create Cube</string>
+          </property>
+         </widget>
+        </item>
+        <item row="13" column="1">
+         <widget class="QPushButton" name="btnFillTriangle">
+          <property name="text">
+           <string>Fill triangle</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="1">
+         <widget class="QDoubleSpinBox" name="doubleSpinBoxCubeLen"/>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Orientation::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <action name="actionOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionClear">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+F4</string>
+   </property>
+  </action>
+  <action name="actionResize">
+   <property name="text">
+    <string>Resize</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="ImageViewer.qrc"/>
+ </resources>
+ <connections/>
+</ui>
