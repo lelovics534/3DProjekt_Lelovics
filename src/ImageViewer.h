@@ -59,6 +59,7 @@ private slots:
 	void on_btnFillTriangle_clicked();
 	void on_btnCreateCube_clicked();
 
+
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
 };

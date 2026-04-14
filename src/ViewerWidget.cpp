@@ -801,9 +801,9 @@ std::vector<QVector3D> ViewerWidget::createCubeVerticles(double size)
 	return V ;
 }
 
-std::vector<Triangles> ViewerWidget::createCubeTriangles()
+std::vector<ViewerWidget::Triangles> ViewerWidget::createCubeTriangles()
 {
-	std::vector<Triangles> T;
+	std::vector<ViewerWidget::Triangles> T;
 		
 	T.push_back({ 0, 1, 2 });//
 	T.push_back({ 0, 2, 3 });

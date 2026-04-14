@@ -470,8 +470,15 @@ void ImageViewer::on_btnFillTriangle_clicked()
 void ImageViewer::on_btnCreateCube_clicked()
 {
 	double size = ui->doubleSpinBoxCubeLen->value();
+	QString fileName = ui->lineEditVtkName->text();
+	if (fileName.isEmpty())
+	{
+		QMessageBox::warning(this, "Error", "Please enter a file name for the cube.");
+		return;
+	}
 
-	std::vector<QVector3D> cubeVertices = vW->createCubeVerticles(size);
+	vW-> writeVTK(fileName.toStdString(), size);
+	QMessageBox::information(this,"Success",QString("Cube created and saved"));
 
 }
 
