@@ -471,7 +471,7 @@ void ImageViewer::on_btnCreateCube_clicked()
 {
 	double size = ui->doubleSpinBoxCubeLen->value();
 
-	std::vector<QVector3D> cubeVertices = createCubeVerticles(size);
+	std::vector<QVector3D> cubeVertices = vW->createCubeVerticles(size);
 
 }
 

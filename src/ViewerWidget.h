@@ -1,6 +1,9 @@
 #pragma once
 #include <QtWidgets>
-#include <QVector>
+#include <Qvector>
+#include <vector>
+#include <Qvector3D>
+
 class ViewerWidget :public QWidget {
 	Q_OBJECT
 private:
@@ -48,6 +51,13 @@ private:
 
 	//Cube
 	std::vector<QVector3D> vertexList;
+
+	struct Triangles {
+		int v1, v2, v3;
+	};
+
+	std::vector<Triangles> triangles;
+	
 
 
 public:
@@ -159,6 +169,9 @@ public:
 	// Cube
 	
 	std::vector<QVector3D> createCubeVerticles(double size);
+	std::vector<Triangles> createCubeTriangles();
+	void writeVTK(const std::string& filename, double size);
+
 
 	///////
 

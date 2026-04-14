@@ -1,7 +1,11 @@
 #include   "ViewerWidget.h"
 #include <cmath>
 #include <vector>
+#include<Qvector>
+#include <Qvector3D>
 #include <algorithm>
+#include <Qvector3D>
+#include <fstream>
 
 ViewerWidget::ViewerWidget(QSize imgSize, QWidget* parent)
 	: QWidget(parent)
@@ -795,6 +799,61 @@ std::vector<QVector3D> ViewerWidget::createCubeVerticles(double size)
 	V.push_back(QVector3D(0, size, size));
 	
 	return V ;
+}
+
+std::vector<Triangles> ViewerWidget::createCubeTriangles()
+{
+	std::vector<Triangles> T;
+		
+	T.push_back({ 0, 1, 2 });//
+	T.push_back({ 0, 2, 3 });
+
+	T.push_back({ 4, 5, 6 });
+	T.push_back({ 4, 6, 7 });
+
+	T.push_back({1,5,6}); //
+	T.push_back({1,6,2});
+
+	T.push_back({4,5,1});
+	T.push_back({4,1,0});
+
+	T.push_back({3,2,6});
+	T.push_back({3,6,7});
+
+	T.push_back({4,3,0});
+	T.push_back({4,7,3});
+
+	return T ;
+}
+
+void ViewerWidget::writeVTK(const std::string& filename, double size)
+{
+	std::vector<QVector3D> vertices = createCubeVerticles(size);
+	std::vector<Triangles> triangles = createCubeTriangles();
+
+	std::ofstream file(filename);
+	if (!file.is_open()) {
+		return;
+	}
+	//header
+	file << "# vtk DataFile Version 3.0\n";
+	file << "Cube with diagonally divided faces\n";
+	file << "ASCII\n";
+	file << "DATASET POLYDATA\n";
+
+	// body
+	file << "POINTS " << vertices.size() << " float\n";
+	for (const auto& v : vertices) {
+		file << v.x() << " " << v.y() << " " << v.z() << "\n";
+	}
+
+	//triangles
+	file << "POLYGONS " << triangles.size() << " " << triangles.size() * 4 << "\n";
+	for (const auto& t : triangles) {
+		file << "3 " << t.v1 << " " << t.v2 << " " << t.v3 << "\n";
+	}
+
+	file.close();
 }
 
 QVector<QPoint> ViewerWidget::getSutherlandHodgmanClipped(
