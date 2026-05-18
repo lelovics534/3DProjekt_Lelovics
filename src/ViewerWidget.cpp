@@ -757,7 +757,7 @@ void ViewerWidget::drawBSpline(int segments, QColor color)
 				std::round(
 					B0(t) * controlPoints[i - 3].y() +
 					B1(t) * controlPoints[i - 2].y() +
-					B2(t) * controlPoints[i - 1].y() +
+				 B2(t) * controlPoints[i - 1].y() +
 					B3(t) * controlPoints[i].y()
 				)
 			);
@@ -805,13 +805,13 @@ std::vector<ViewerWidget::Triangles> ViewerWidget::createCubeTriangles()
 {
 	std::vector<ViewerWidget::Triangles> T;
 		
-	T.push_back({ 0, 1, 2 });//
+	T.push_back({ 0, 1, 2 });
 	T.push_back({ 0, 2, 3 });
 
 	T.push_back({ 4, 5, 6 });
 	T.push_back({ 4, 6, 7 });
 
-	T.push_back({1,5,6}); //
+	T.push_back({1,5,6}); 
 	T.push_back({1,6,2});
 
 	T.push_back({4,5,1});
@@ -966,27 +966,66 @@ void ViewerWidget::clear()
 
 void ViewerWidget::drawLineDDA(QPoint start, QPoint end, QColor color)
 {
-	double dx = end.x() - start.x();
-	double dy = end.y() - start.y();
-
-	double steps = std::max(std::abs(dx), std::abs(dy));
-
-	if (steps == 0) {
-		setPixel(start.x(), start.y(), color);
+	if (start.x() == end.x()) {
+		int yStart = std::min(start.y(), end.y());
+		int yEnd = std::max(start.y(), end.y());
+		for (int y = yStart; y <= yEnd; y++) {
+			setPixel(start.x(), y, color);
+		}
 		return;
 	}
 
-	double xInc = dx / steps;
-	double yInc = dy / steps;
+	double dx = end.x() - start.x();
+	double dy = end.y() - start.y();
+	double m = dy / dx;
 
-	double x = start.x();
-	double y = start.y();
+	if (std::abs(m) <= 1) {
+		// Plochá úseèka: dominantná os je X. Ideme z¾ava doprava.
+		double x = start.x() < end.x() ? start.x() : end.x();
+		double x2 = start.x() < end.x() ? end.x() : start.x();
+		// Y priradíme pod¾a toho, ktorý bod bol vybraný ako zaèiatok
+		double y = start.x() < end.x() ? start.y() : end.y();
 
-	for (int i = 0; i <= steps; i++) {
-		setPixel(std::round(x), std::round(y), color);
-		x += xInc;
-		y += yInc;
+		while (x <= x2) {
+			setPixel(std::round(x), std::round(y), color);
+			x += 1.0;
+			m = dy / dx; // m už máme vypoèítané
+			y += m;
+		}
 	}
+	else {
+		// Strmá úseèka: dominantná os je Y. Ideme zdola nahor (pod¾a hodnôt Y).
+		double y = start.y() < end.y() ? start.y() : end.y();
+		double y2 = start.y() < end.y() ? end.y() : start.y();
+		// X priradíme pod¾a toho, ktorý bod mal menšie Y
+		double x = start.y() < end.y() ? start.x() : end.x();
+
+		while (y <= y2) {
+			setPixel(std::round(x), std::round(y), color);
+			y += 1.0;
+			x += (1.0 / m); // Tu korektne pripoèíta kladnú alebo zápornú hodnotu
+		}
+	}
+
+
+	//double steps = std::max(std::abs(dx), std::abs(dy));
+
+	//if (steps == 0) {
+	//	setPixel(start.x(), start.y(), color);
+	//	return;
+	//}
+
+	//double xInc = dx / steps;
+	//double yInc = dy / steps;
+
+	//double x = start.x();
+	//double y = start.y();
+
+	//for (int i = 0; i <= steps; i++) {
+	//	setPixel(std::round(x), std::round(y), color);
+	//	x += xInc;
+	//	y += yInc;
+	//}
 }
 
 void ViewerWidget::drawLineBresenham(QPoint start, QPoint end, QColor color)
