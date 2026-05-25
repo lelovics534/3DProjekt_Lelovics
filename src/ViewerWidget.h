@@ -54,6 +54,12 @@ private:
 	struct Triangles {
 		int v1, v2, v3;
 	};
+
+	struct TransformedPoint {
+		QPoint screen; // 2D súradnica na obrazovke
+		double z;      // Hĺbka
+	};
+
 	std::vector<Triangles> triangles;
 	std::vector<QVector3D>sphereVerticles;
 	std::vector<Triangles> sphereTriangles;
@@ -175,8 +181,9 @@ public:
 	void generateUVSphere(double radius, int slices, int stacks);
 	void writeSphereVTK(const std::string& filename);
 	bool loadVTK(const std::string& filename);
-
-
+	// zobrazenie 3d objektov
+	TransformedPoint transformVertex(QVector3D v, double azimut, double zenit, int project, double distance, int centerX, int centerY);
+	void drawWireFrame(double azimut, double zenit, int project, double distance, QColor color);
 	///////
 
 	uchar* getData() { return data; }

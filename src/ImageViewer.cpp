@@ -12,6 +12,7 @@ ImageViewer::ImageViewer(QWidget* parent)
 	ui->toolButtonLineMove->setCheckable(true);
 	ui->toolButtonDrawTriangle->setCheckable(true);
 	ui->toolButtonDrawCurves->setCheckable(true);
+	ui->toolButtonDrawWF->setCheckable(true);
 
 	vW = new ViewerWidget(QSize(500, 500), ui->scrollArea);
 	ui->scrollArea->setWidget(vW);
@@ -285,6 +286,20 @@ bool ImageViewer::saveImage(QString filename)
 	return img->save(filename, extension.toStdString().c_str());
 }
 
+void ImageViewer::update3DViewer()
+{
+	double currentAzimut = static_cast<double>(ui->horizontalSliderazimut->value());
+	double currentZenit = static_cast<double>(ui->horizontalSliderZenit->value());
+	int currentProject = ui->comboBoxProjection->currentIndex(); // 0 alebo 1
+	double currentDistance = static_cast<double>(ui->spinBoxDist->value());
+
+	vW->clear();
+
+	if (ui->toolButtonDrawWF->isChecked()) {
+		vW->drawWireFrame(currentAzimut, currentZenit, currentProject, currentDistance,globalColor); // Vykreslí objekt s čerstvými dátami
+	}
+}
+
 //Slots
 void ImageViewer::on_actionOpen_triggered()
 {
@@ -526,6 +541,7 @@ void ImageViewer::on_btnLoadVtk_clicked()
 	// Pokúsime sa načítať súbor do povrchovej reprezentácie vo ViewerWidgeti
 	if (vW->loadVTK(fileName.toStdString())) {
 		QMessageBox::information(this, "Úspech", QString("Sféra zo súboru %1 bola úspešne načítaná do pamäte.").arg(fileName));
+		update3DViewer();
 	}
 	else {
 		QMessageBox::critical(this, "Chyba", QString("Súbor %1 sa nepodarilo otvoriť alebo načítať.").arg(fileName));

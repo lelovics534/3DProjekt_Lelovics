@@ -681,12 +681,12 @@ void ViewerWidget::drawHermite(int segments,QColor color)
 	}
 }
 
-QPoint ViewerWidget::deCasteljau(QVector<QPoint> pts, double t)
-{
-	for (int k = 1; k < pts.size(); k++) {
-		for (int i = 0; i < pts.size() - k; i++) {
-			pts[i].setX((1 - t) * pts[i].x() + t * pts[i + 1].x());
-			pts[i].setY((1 - t) * pts[i].y() + t * pts[i + 1].y());
+	QPoint ViewerWidget::deCasteljau(QVector<QPoint> pts, double t)
+	{
+		for (int k = 1; k < pts.size(); k++) {
+			for (int i = 0; i < pts.size() - k; i++) {
+				pts[i].setX((1 - t) * pts[i].x() + t * pts[i + 1].x());
+				pts[i].setY((1 - t) * pts[i].y() + t * pts[i + 1].y());
 		}
 	}
 	return pts[0];
@@ -981,6 +981,84 @@ bool ViewerWidget::loadVTK(const std::string& filename)
 	file.close();
 	update(); // Prekresli widget, ak máme vizualizáciu
 	return true;
+}
+
+ViewerWidget::TransformedPoint ViewerWidget::transformVertex(QVector3D v, double azimut, double zenit, int project, double distance, int centerX, int centerY)
+{
+	// 1. Prevod uhlov zo stupòov na radiány
+	double phi = azimut * M_PI / 180.0;
+	double theta = zenit * M_PI / 180.0;
+
+	// 2. Výpoèet smerových vektorov kamery (báza priemetne)
+	// Smer poh¾adu
+	double nx = sin(theta) * sin(phi);
+	double ny = sin(theta) * cos(phi);
+	double nz = cos(theta);
+
+	// Vektor doprava (u)
+	double ux = cos(phi);
+	double uy = -sin(phi);
+	double uz = 0.0;
+
+	// Vektor hore (v) - získaný vektorovým súèinom
+	double vx = uy * nz - uz * ny;
+	double vy = uz * nx - ux * nz;
+	double vz = ux * ny - uy * nx;
+
+	// 3. Transformácia 3D bodu do súradníc kamery
+	double x_cam = v.x() * ux + v.y() * uy + v.z() * uz;
+	double y_cam = v.x() * vx + v.y() * vy + v.z() * vz;
+	double z_cam = v.x() * nx + v.y() * ny + v.z() * nz;
+
+	TransformedPoint tp;
+	tp.z = z_cam; // Odložíme håbku
+
+	// 4. Projekcia na 2D obrazovku
+	if (project == 0) {
+		// Rovnobežné premietanie
+		tp.screen.setX(static_cast<int>(centerX + x_cam));
+		tp.screen.setY(static_cast<int>(centerY - y_cam)); // -y, pretože v poèítaèovej grafike ide os Y dole
+	}
+	else {
+		// Stredové premietanie (perspektíva)
+		// d / (d - z) zabezpeèí, že vzdialenejšie objekty sú menšie
+		double factor = distance / (distance - z_cam);
+		if (distance - z_cam == 0) factor = 1.0; // Ochrana proti deleniu nulou
+
+		tp.screen.setX(static_cast<int>(centerX + x_cam * factor));
+		tp.screen.setY(static_cast<int>(centerY - y_cam * factor));
+	}
+	update();
+	return tp;
+}
+
+void ViewerWidget::drawWireFrame(double azimut, double zenit, int project, double distance, QColor color)
+{
+	if (sphereVerticles.empty() || sphereTriangles.empty()) return;
+
+	int centerX = getImgWidth() / 2;
+	int centerY = getImgHeight() / 2;
+
+	// Vytvoríme si pole pre pretransformované 2D body
+	std::vector<QPoint> screenPoints(sphereVerticles.size());
+
+	// Pretransformujeme každý jeden 3D bod na obrazovku
+	for (size_t i = 0; i < sphereVerticles.size(); ++i) {
+		TransformedPoint tp = transformVertex(sphereVerticles[i], azimut, zenit, project, distance, centerX, centerY);
+		screenPoints[i] = tp.screen;
+	}
+
+	// Vykreslíme hrany trojuholníkov pomocou tvojho Bresenhama
+	for (const auto& triangle : sphereTriangles) {
+		QPoint p1 = screenPoints[triangle.v1];
+		QPoint p2 = screenPoints[triangle.v2];
+		QPoint p3 = screenPoints[triangle.v3];
+
+		drawLineBresenham(p1, p2, color);
+		drawLineBresenham(p2, p3, color);
+		drawLineBresenham(p3, p1, color);
+	}
+	update();
 }
 
 QVector<QPoint> ViewerWidget::getSutherlandHodgmanClipped(const QVector<QPoint>& input,int xMin, int xMax, int yMin, int yMax)

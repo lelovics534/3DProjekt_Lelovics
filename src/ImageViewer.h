@@ -61,6 +61,7 @@ private slots:
 	void on_btnCreateSphere_clicked();
 	void on_btnLoadVtk_clicked();
 
+	void update3DViewer();
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
 };
