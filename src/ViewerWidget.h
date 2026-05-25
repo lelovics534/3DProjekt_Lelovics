@@ -51,13 +51,12 @@ private:
 
 	//Cube
 	std::vector<QVector3D> vertexList;
-
 	struct Triangles {
 		int v1, v2, v3;
 	};
-
 	std::vector<Triangles> triangles;
-	
+	std::vector<QVector3D>sphereVerticles;
+	std::vector<Triangles> sphereTriangles;
 
 
 public:
@@ -171,6 +170,11 @@ public:
 	std::vector<QVector3D> createCubeVerticles(double size);
 	std::vector<Triangles> createCubeTriangles();
 	void writeVTK(const std::string& filename, double size);
+
+	//sphere
+	void generateUVSphere(double radius, int slices, int stacks);
+	void writeSphereVTK(const std::string& filename);
+	bool loadVTK(const std::string& filename);
 
 
 	///////

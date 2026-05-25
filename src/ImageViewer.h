@@ -58,7 +58,8 @@ private slots:
 	void on_btnFillPolygon_clicked();
 	void on_btnFillTriangle_clicked();
 	void on_btnCreateCube_clicked();
-
+	void on_btnCreateSphere_clicked();
+	void on_btnLoadVtk_clicked();
 
 	//Tools slots
 	void on_pushButtonSetColor_clicked();

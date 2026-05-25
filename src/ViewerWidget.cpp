@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <Qvector3D>
 #include <fstream>
+#include <sstream>
 
 ViewerWidget::ViewerWidget(QSize imgSize, QWidget* parent)
 	: QWidget(parent)
@@ -856,9 +857,133 @@ void ViewerWidget::writeVTK(const std::string& filename, double size)
 	file.close();
 }
 
-QVector<QPoint> ViewerWidget::getSutherlandHodgmanClipped(
-	const QVector<QPoint>& input,
-	int xMin, int xMax, int yMin, int yMax)
+void ViewerWidget::generateUVSphere(double radius, int slices, int stacks)
+{
+	sphereVerticles.clear();
+	sphereTriangles.clear();
+
+	for (int i = 0; i <= stacks; ++i) {
+		double theta = i * M_PI / stacks;
+		double sinTheta = std::sin(theta);
+		double cosTheta = std::cos(theta);
+
+		for (int j = 0; j <= slices; ++j) {
+			double phi = j * 2.0 * M_PI / slices;
+			double sinPhi = std::sin(phi);
+			double cosPhi = std::cos(phi);
+
+			double x = radius * sinTheta * cosPhi;
+			double y = radius* cosTheta;
+			double z = radius * sinTheta * sinPhi;
+
+			sphereVerticles.push_back(QVector3D(x, y, z));
+		}
+	}
+
+	for (int i = 0; i < stacks; ++i) {
+		for (int j = 0; j < slices; ++j) {
+
+			// Indexy štyroch susediacich bodov na mrieke sféry
+			int first = (i * (slices + 1)) + j;
+			int second = first + slices + 1;
+
+			// Prvı trojuholník zo štvorca (quadu)
+			Triangles t1;
+			t1.v1 = first;
+			t1.v2 = second;
+			t1.v3 = first + 1;
+			sphereTriangles.push_back(t1);
+
+			// Druhı trojuholník zo štvorca (quadu)
+			Triangles t2;
+			t2.v1 = first + 1;
+			t2.v2 = second;
+			t2.v3 = second + 1;
+			sphereTriangles.push_back(t2);
+		}
+	}
+}
+
+void ViewerWidget::writeSphereVTK(const std::string& filename)
+{
+	std::ofstream file(filename);
+	if (!file.is_open()) return;
+
+	// Hlavièka VTK formátu pre PolyData
+	file << "# vtk DataFile Version 3.0\n";
+	file << "UV_Sphere_Model\n";
+	file << "ASCII\n";
+	file << "DATASET POLYDATA\n";
+
+	// Zápis bodov
+	file << "POINTS " << sphereVerticles.size() << " float\n";
+	for (const auto& v : sphereVerticles) {
+		file << v.x() << " " << v.y() << " " << v.z() << "\n";
+	}
+
+	// Zápis trojuholníkov (stien)
+	int totalIndices = sphereTriangles.size() * 4;
+	file << "POLYGONS " << sphereTriangles.size() << " " << totalIndices << "\n";
+	for (const auto& t : sphereTriangles) {
+		file << "3 " << t.v1 << " " << t.v2 << " " << t.v3 << "\n";
+	}
+
+	file.close();
+}
+
+bool ViewerWidget::loadVTK(const std::string& filename)
+{
+	std::ifstream file(filename);
+	if (!file.is_open()) return false;
+
+	sphereVerticles.clear();
+	sphereTriangles.clear();
+
+	std::string line;
+	while (std::getline(file, line)) {
+		// H¾adáme sekciu POINTS
+		if (line.find("POINTS") != std::string::npos) {
+			std::stringstream ss(line);
+			std::string dummy;
+			int numVerticles = 0;
+			ss >> dummy >> numVerticles; // Naèíta slovo POINTS a poèet bodov
+
+			for (int i = 0; i < numVerticles; ++i) {
+				float x, y, z;
+				file >> x >> y >> z;
+				vertexList.push_back(QVector3D(x, y, z));
+			}
+		}
+		// 2. H¾adáme sekciu s polygónmi (trojuholníkmi)
+		if (line.find("POLYGONS") != std::string::npos || line.find("CELLS") != std::string::npos) {
+			std::stringstream ss(line);
+			std::string dummy;
+			int numTriangles = 0;
+			ss >> dummy >> numTriangles; // Preèíta "POLYGONS" a poèet trojuholníkov
+
+			// Naèítame všetky trojuholníky
+			for (int i = 0; i < numTriangles; ++i) {
+				int numPoints, v1, v2, v3;
+				file >> numPoints >> v1 >> v2 >> v3;
+
+				// VTK môe obsahova aj štvoruholníky, ale zadanie vyaduje trojuholníkovú sie
+				if (numPoints == 3) {
+					Triangles t;
+					t.v1 = v1;
+					t.v2 = v2;
+					t.v3 = v3;
+					sphereTriangles.push_back(t);
+				}
+			}
+		}
+	}
+
+	file.close();
+	update(); // Prekresli widget, ak máme vizualizáciu
+	return true;
+}
+
+QVector<QPoint> ViewerWidget::getSutherlandHodgmanClipped(const QVector<QPoint>& input,int xMin, int xMax, int yMin, int yMax)
 {
 	QVector<QPoint> out = input;
 
@@ -980,52 +1105,29 @@ void ViewerWidget::drawLineDDA(QPoint start, QPoint end, QColor color)
 	double m = dy / dx;
 
 	if (std::abs(m) <= 1) {
-		// Plochá úseèka: dominantná os je X. Ideme z¾ava doprava.
 		double x = start.x() < end.x() ? start.x() : end.x();
 		double x2 = start.x() < end.x() ? end.x() : start.x();
-		// Y priradíme pod¾a toho, ktorı bod bol vybranı ako zaèiatok
 		double y = start.x() < end.x() ? start.y() : end.y();
 
 		while (x <= x2) {
 			setPixel(std::round(x), std::round(y), color);
 			x += 1.0;
-			m = dy / dx; // m u máme vypoèítané
 			y += m;
 		}
 	}
 	else {
-		// Strmá úseèka: dominantná os je Y. Ideme zdola nahor (pod¾a hodnôt Y).
 		double y = start.y() < end.y() ? start.y() : end.y();
 		double y2 = start.y() < end.y() ? end.y() : start.y();
-		// X priradíme pod¾a toho, ktorı bod mal menšie Y
 		double x = start.y() < end.y() ? start.x() : end.x();
 
 		while (y <= y2) {
 			setPixel(std::round(x), std::round(y), color);
 			y += 1.0;
-			x += (1.0 / m); // Tu korektne pripoèíta kladnú alebo zápornú hodnotu
+			x += (1.0 / m);
 		}
 	}
 
 
-	//double steps = std::max(std::abs(dx), std::abs(dy));
-
-	//if (steps == 0) {
-	//	setPixel(start.x(), start.y(), color);
-	//	return;
-	//}
-
-	//double xInc = dx / steps;
-	//double yInc = dy / steps;
-
-	//double x = start.x();
-	//double y = start.y();
-
-	//for (int i = 0; i <= steps; i++) {
-	//	setPixel(std::round(x), std::round(y), color);
-	//	x += xInc;
-	//	y += yInc;
-	//}
 }
 
 void ViewerWidget::drawLineBresenham(QPoint start, QPoint end, QColor color)

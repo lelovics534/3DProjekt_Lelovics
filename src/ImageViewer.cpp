@@ -333,6 +333,7 @@ void ImageViewer::on_actionExit_triggered()
 	this->close();
 }
 
+
 void ImageViewer::on_toolButtonDrawPolygon_clicked()
 {
 	ui->toolButtonDrawLine->setChecked(false);
@@ -482,6 +483,54 @@ void ImageViewer::on_btnCreateCube_clicked()
 
 }
 
+void ImageViewer::on_btnCreateSphere_clicked()
+{
+	// 1. Vytiahneme hodnoty z UI
+	double radius = ui->doubleSpinBoxSphereRadius->value();
+	int slices = ui->spinBoxSphereSlices->value();
+	int stacks = ui->spinBoxSphereStacks->value();
+	QString fileName = ui->lineEditVtkName->text();
+
+	if (fileName.isEmpty()) {
+		QMessageBox::warning(this, "Chyba", "Zadajte názov súboru pre sféru (napr. sfera.vtk).");
+		return;
+	}
+
+	// Ak užívateľ nezadal príponu .vtk, pridáme ju
+	if (!fileName.endsWith(".vtk", Qt::CaseInsensitive)) {
+		fileName += ".vtk";
+	}
+
+	// 2. Zavoláme generovanie sféry vo ViewerWidgeti
+	vW->generateUVSphere(radius, slices, stacks);
+
+	// 3. Uložíme ju do súboru
+	vW->writeSphereVTK(fileName.toStdString());
+
+	QMessageBox::information(this, "Úspech", QString("UV Sféra bola úspešne vygenerovaná a uložená do %1").arg(fileName));
+}
+
+void ImageViewer::on_btnLoadVtk_clicked()
+{
+	QString fileName = ui->lineEditVtkName->text();
+
+	if (fileName.isEmpty()) {
+		QMessageBox::warning(this, "Chyba", "Zadajte názov súboru, ktorý chcete načítať.");
+		return;
+	}
+
+	if (!fileName.endsWith(".vtk", Qt::CaseInsensitive)) {
+		fileName += ".vtk";
+	}
+
+	// Pokúsime sa načítať súbor do povrchovej reprezentácie vo ViewerWidgeti
+	if (vW->loadVTK(fileName.toStdString())) {
+		QMessageBox::information(this, "Úspech", QString("Sféra zo súboru %1 bola úspešne načítaná do pamäte.").arg(fileName));
+	}
+	else {
+		QMessageBox::critical(this, "Chyba", QString("Súbor %1 sa nepodarilo otvoriť alebo načítať.").arg(fileName));
+	}
+}
 
 void ImageViewer::on_pushButtonSetColor_clicked()
 {
