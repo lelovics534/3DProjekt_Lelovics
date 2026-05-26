@@ -292,12 +292,14 @@ void ImageViewer::update3DViewer()
 	double currentZenit = static_cast<double>(ui->horizontalSliderZenit->value());
 	int currentProject = ui->comboBoxProjection->currentIndex(); // 0 alebo 1
 	double currentDistance = static_cast<double>(ui->spinBoxDist->value());
+	QColor globalColor = this->globalColor;
 
-	vW->clear();
+	vW->clearImageOnly();
 
 	if (ui->toolButtonDrawWF->isChecked()) {
-		vW->drawWireFrame(currentAzimut, currentZenit, currentProject, currentDistance,globalColor); // Vykreslí objekt s čerstvými dátami
+		vW->drawWireFrame(currentAzimut, currentZenit, currentProject, currentDistance,Qt::black); // Vykreslí objekt s čerstvými dátami
 	}
+	vW->update();
 }
 
 //Slots
@@ -540,12 +542,36 @@ void ImageViewer::on_btnLoadVtk_clicked()
 
 	// Pokúsime sa načítať súbor do povrchovej reprezentácie vo ViewerWidgeti
 	if (vW->loadVTK(fileName.toStdString())) {
-		QMessageBox::information(this, "Úspech", QString("Sféra zo súboru %1 bola úspešne načítaná do pamäte.").arg(fileName));
 		update3DViewer();
+		QMessageBox::information(this, "Úspech", QString("Sféra zo súboru %1 bola úspešne načítaná do pamäte.").arg(fileName));
 	}
 	else {
 		QMessageBox::critical(this, "Chyba", QString("Súbor %1 sa nepodarilo otvoriť alebo načítať.").arg(fileName));
 	}
+}
+
+void ImageViewer::on_horizontalSliderazimut_valueChanged(int value)
+{
+	update3DViewer();
+}
+
+void ImageViewer::on_horizontalSliderZenit_valueChanged(int value)
+{
+	update3DViewer();
+}
+
+void ImageViewer::on_comboBoxProjection_currentIndexChanged(int index)
+{
+	update3DViewer();
+}
+void ImageViewer::on_spinBoxDist_valueChanged(double value)
+{
+	update3DViewer();
+}
+
+void ImageViewer::on_toolButtonDrawWF_clicked()
+{
+	update3DViewer();
 }
 
 void ImageViewer::on_pushButtonSetColor_clicked()

@@ -951,7 +951,7 @@ bool ViewerWidget::loadVTK(const std::string& filename)
 			for (int i = 0; i < numVerticles; ++i) {
 				float x, y, z;
 				file >> x >> y >> z;
-				vertexList.push_back(QVector3D(x, y, z));
+				sphereVerticles.push_back(QVector3D(x, y, z));
 			}
 		}
 		// 2. H¾adáme sekciu s polygónmi (trojuholníkmi)
@@ -1016,48 +1016,64 @@ ViewerWidget::TransformedPoint ViewerWidget::transformVertex(QVector3D v, double
 	// 4. Projekcia na 2D obrazovku
 	if (project == 0) {
 		// Rovnobežné premietanie
-		tp.screen.setX(static_cast<int>(centerX + x_cam));
-		tp.screen.setY(static_cast<int>(centerY - y_cam)); // -y, pretože v poèítaèovej grafike ide os Y dole
+		double scale = 150.0;
+		tp.screen.setX(static_cast<int>(centerX + x_cam * scale));
+		tp.screen.setY(static_cast<int>(centerY - y_cam * scale)); // -y, pretože v poèítaèovej grafike ide os Y dole
 	}
 	else {
 		// Stredové premietanie (perspektíva)
 		// d / (d - z) zabezpeèí, že vzdialenejšie objekty sú menšie
 		double factor = distance / (distance - z_cam);
-		if (distance - z_cam == 0) factor = 1.0; // Ochrana proti deleniu nulou
+		if (std::abs(distance - z_cam) < 0.001) factor = 1.0;
 
 		tp.screen.setX(static_cast<int>(centerX + x_cam * factor));
 		tp.screen.setY(static_cast<int>(centerY - y_cam * factor));
 	}
-	update();
 	return tp;
 }
 
 void ViewerWidget::drawWireFrame(double azimut, double zenit, int project, double distance, QColor color)
 {
-	if (sphereVerticles.empty() || sphereTriangles.empty()) return;
+	if (sphereVerticles.empty() || sphereTriangles.empty()) {
+		// Debug output
+		qDebug() << "No vertices or triangles to draw!";
+		return;
+	}
 
 	int centerX = getImgWidth() / 2;
 	int centerY = getImgHeight() / 2;
 
-	// Vytvoríme si pole pre pretransformované 2D body
+	qDebug() << "Drawing wireframe with" << sphereVerticles.size() << "vertices and" << sphereTriangles.size() << "triangles";
+
 	std::vector<QPoint> screenPoints(sphereVerticles.size());
 
-	// Pretransformujeme každý jeden 3D bod na obrazovku
+	// Transform all vertices
 	for (size_t i = 0; i < sphereVerticles.size(); ++i) {
 		TransformedPoint tp = transformVertex(sphereVerticles[i], azimut, zenit, project, distance, centerX, centerY);
 		screenPoints[i] = tp.screen;
+
+		// Optional: draw vertices as small dots for debugging
+		// setPixel(tp.screen.x(), tp.screen.y(), Qt::red);
 	}
 
-	// Vykreslíme hrany trojuholníkov pomocou tvojho Bresenhama
+	// Draw all triangle edges
 	for (const auto& triangle : sphereTriangles) {
+		if (triangle.v1 >= static_cast<int>(screenPoints.size()) ||
+			triangle.v2 >= static_cast<int>(screenPoints.size()) ||
+			triangle.v3 >= static_cast<int>(screenPoints.size())) {
+			continue;
+		}
+
 		QPoint p1 = screenPoints[triangle.v1];
 		QPoint p2 = screenPoints[triangle.v2];
 		QPoint p3 = screenPoints[triangle.v3];
 
+		// Draw edges
 		drawLineBresenham(p1, p2, color);
 		drawLineBresenham(p2, p3, color);
 		drawLineBresenham(p3, p1, color);
 	}
+
 	update();
 }
 

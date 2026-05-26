@@ -39,6 +39,8 @@ private:
 	bool openImage(QString filename);
 	bool saveImage(QString filename);
 
+	void update3DViewer();
+
 private slots:
 	void on_actionOpen_triggered();
 	void on_actionSave_as_triggered();
@@ -61,7 +63,11 @@ private slots:
 	void on_btnCreateSphere_clicked();
 	void on_btnLoadVtk_clicked();
 
-	void update3DViewer();
+	void on_horizontalSliderazimut_valueChanged(int value);
+	void on_horizontalSliderZenit_valueChanged(int value);
+	void on_comboBoxProjection_currentIndexChanged(int index);
+	void on_spinBoxDist_valueChanged(double value);
+	void on_toolButtonDrawWF_clicked();
 	//Tools slots
 	void on_pushButtonSetColor_clicked();
 };
