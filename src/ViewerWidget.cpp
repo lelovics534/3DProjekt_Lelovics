@@ -1012,9 +1012,8 @@ ViewerWidget::TransformedPoint ViewerWidget::transformVertex(QVector3D v, double
 	// 4. Projekcia na 2D obrazovku
 	if (project == 0) {
 		// Rovnobežné premietanie
-		double scale = 150.0;
-		tp.screen.setX(static_cast<int>(centerX + x_cam * scale));
-		tp.screen.setY(static_cast<int>(centerY - y_cam * scale)); // -y, pretože v poèítaèovej grafike ide os Y dole
+		tp.screen.setX(static_cast<int>(centerX + x_cam ));
+		tp.screen.setY(static_cast<int>(centerY - y_cam)); // -y, pretože v poèítaèovej grafike ide os Y dole
 	}
 	else {
 		// Stredové premietanie (perspektíva)
@@ -1291,8 +1290,6 @@ void ViewerWidget::drawCircleBresenham(QPoint center, int radius, QColor color)
 			dvaX = dvaX + 2;
 			x++;
 		}
-
-		
 	}
 }
 //Slots
