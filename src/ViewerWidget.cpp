@@ -7,6 +7,8 @@
 #include <Qvector3D>
 #include <fstream>
 #include <sstream>
+#include<QDebug>
+#include<limits>
 
 ViewerWidget::ViewerWidget(QSize imgSize, QWidget* parent)
 	: QWidget(parent)
@@ -933,54 +935,48 @@ void ViewerWidget::writeSphereVTK(const std::string& filename)
 
 bool ViewerWidget::loadVTK(const std::string& filename)
 {
-	std::ifstream file(filename);
-	if (!file.is_open()) return false;
-
 	sphereVerticles.clear();
 	sphereTriangles.clear();
 
-	std::string line;
-	while (std::getline(file, line)) {
-		// Hæad·me sekciu POINTS
-		if (line.find("POINTS") != std::string::npos) {
-			std::stringstream ss(line);
-			std::string dummy;
-			int numVerticles = 0;
-			ss >> dummy >> numVerticles; // NaËÌta slovo POINTS a poËet bodov
+	QFile file(QString::fromStdString(filename));
+	if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		qDebug() << "Failed to open file";
+		return false;
+	}
 
-			for (int i = 0; i < numVerticles; ++i) {
-				float x, y, z;
-				file >> x >> y >> z;
-				sphereVerticles.push_back(QVector3D(x, y, z));
-			}
-		}
-		// 2. Hæad·me sekciu s polygÛnmi (trojuholnÌkmi)
-		if (line.find("POLYGONS") != std::string::npos || line.find("CELLS") != std::string::npos) {
-			std::stringstream ss(line);
-			std::string dummy;
-			int numTriangles = 0;
-			ss >> dummy >> numTriangles; // PreËÌta "POLYGONS" a poËet trojuholnÌkov
+	QTextStream in(&file);
 
-			// NaËÌtame vöetky trojuholnÌky
-			for (int i = 0; i < numTriangles; ++i) {
-				int numPoints, v1, v2, v3;
-				file >> numPoints >> v1 >> v2 >> v3;
+	// Skip 4 header lines
+	for (int i = 0; i < 4; i++) in.readLine();
 
-				// VTK mÙûe obsahovaù aj ötvoruholnÌky, ale zadanie vyûaduje trojuholnÌkov˙ sieù
-				if (numPoints == 3) {
-					Triangles t;
-					t.v1 = v1;
-					t.v2 = v2;
-					t.v3 = v3;
-					sphereTriangles.push_back(t);
-				}
-			}
-		}
+	// Read POINTS
+	QString word;
+	int numPoints;
+	in >> word >> numPoints >> word; // "POINTS" N "float"
+
+	for (int i = 0; i < numPoints; i++) {
+		float x, y, z;
+		in >> x >> y >> z;
+		sphereVerticles.push_back(QVector3D(x, y, z));
+	}
+
+	// Read POLYGONS
+	int numTriangles, totalNumbers;
+	in >> word >> numTriangles >> totalNumbers; // "POLYGONS" N M
+
+	for (int i = 0; i < numTriangles; i++) {
+		int count, v1, v2, v3;
+		in >> count >> v1 >> v2 >> v3;
+		if (count != 3) continue;
+		Triangles t;
+		t.v1 = v1; t.v2 = v2; t.v3 = v3;
+		sphereTriangles.push_back(t);
 	}
 
 	file.close();
-	update(); // Prekresliù widget, ak m·me vizualiz·ciu
-	return true;
+
+	qDebug() << "Loaded:" << sphereVerticles.size() << "vertices," << sphereTriangles.size() << "triangles";
+	return sphereVerticles.size() > 0 && sphereTriangles.size() > 0;
 }
 
 ViewerWidget::TransformedPoint ViewerWidget::transformVertex(QVector3D v, double azimut, double zenit, int project, double distance, int centerX, int centerY)

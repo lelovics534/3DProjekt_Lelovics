@@ -1,5 +1,8 @@
 #include <cmath>
 #include "ImageViewer.h"
+#include<QDebug>
+#include<QDir>
+#include<QFileDialog>
 
 ImageViewer::ImageViewer(QWidget* parent)
 	: QMainWindow(parent), ui(new Ui::ImageViewerClass)
@@ -529,24 +532,25 @@ void ImageViewer::on_btnCreateSphere_clicked()
 
 void ImageViewer::on_btnLoadVtk_clicked()
 {
-	QString fileName = ui->lineEditVtkName->text();
+	QString fileName = QFileDialog::getOpenFileName(this, "Vyber VTK subor", "", "VTK files (*.vtk)");
+	if (fileName.isEmpty()) return;
 
-	if (fileName.isEmpty()) {
-		QMessageBox::warning(this, "Chyba", "Zadajte názov súboru, ktorý chcete načítať.");
+	QFile file(fileName);
+	if (!file.exists()) {
+		QMessageBox::critical(this, "Chyba", "Subor neexistuje!");
 		return;
 	}
+	// Remove the file.open() check entirely — loadVTK opens it itself
 
-	if (!fileName.endsWith(".vtk", Qt::CaseInsensitive)) {
-		fileName += ".vtk";
-	}
+	bool result = vW->loadVTK(fileName.toStdString());
 
-	// Pokúsime sa načítať súbor do povrchovej reprezentácie vo ViewerWidgeti
-	if (vW->loadVTK(fileName.toStdString())) {
+	if (result) {
+		QMessageBox::information(this, "OK", QString("Nacitane: %1 bodov, %2 trojuholnikov")
+			.arg(vW->getVertexCount()).arg(vW->getTriangleCount()));
 		update3DViewer();
-		QMessageBox::information(this, "Úspech", QString("Sféra zo súboru %1 bola úspešne načítaná do pamäte.").arg(fileName));
 	}
 	else {
-		QMessageBox::critical(this, "Chyba", QString("Súbor %1 sa nepodarilo otvoriť alebo načítať.").arg(fileName));
+		QMessageBox::critical(this, "Chyba", "Chyba pri nacitani VTK suboru");
 	}
 }
 

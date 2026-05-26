@@ -142,6 +142,9 @@
           <height>25</height>
          </rect>
         </property>
+        <property name="maximum">
+         <number>1000</number>
+        </property>
        </widget>
        <widget class="QToolButton" name="toolButtonDrawWF">
         <property name="geometry">

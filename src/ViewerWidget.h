@@ -181,6 +181,8 @@ public:
 	void generateUVSphere(double radius, int slices, int stacks);
 	void writeSphereVTK(const std::string& filename);
 	bool loadVTK(const std::string& filename);
+	int getVertexCount() const { return sphereVerticles.size(); }
+	int getTriangleCount() const { return sphereTriangles.size(); }
 	// zobrazenie 3d objektov
 	TransformedPoint transformVertex(QVector3D v, double azimut, double zenit, int project, double distance, int centerX, int centerY);
 	void drawWireFrame(double azimut, double zenit, int project, double distance, QColor color);
